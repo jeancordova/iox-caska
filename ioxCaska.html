@@ -6,7 +6,7 @@
   <style>
     body {
       font-family: sans-serif;
-      padding: 20px;
+      margin: 20px 0 0 40px; /* más espacio a la izquierda */
     }
     .title {
       font-size: 32px;
@@ -30,52 +30,57 @@
   <button id="sendBtn">Send</button>
 
   <script>
-    // Register correctly using the internal Add-In ID
-    geotab.addin["ioxCaska"] = (function () {
-
-      let apiRef;
-      let stateRef;
-
-      function initialize(api, state) {
-        apiRef = api;
-        stateRef = state;
-
-        const deviceSelect = document.getElementById("deviceSelect");
-        const stateSelect = document.getElementById("stateSelect");
-        const sendBtn = document.getElementById("sendBtn");
-
-        // Load devices
-        api.call("Get", { typeName: "Device" }, function (devices) {
-          devices.forEach(device => {
-            const opt = document.createElement("option");
-            opt.value = device.id;
-            opt.textContent = device.name;
-            deviceSelect.appendChild(opt);
-          });
-        });
-
-        // Send command
-        sendBtn.onclick = function () {
-          const deviceId = deviceSelect.value;
-          const onState = stateSelect.value === "On";
-
-          api.call("Set", {
-            typeName: "Output",
-            entity: {
-              device: { id: deviceId },
-              data: onState
-            }
-          }, function () {
-            alert("Command sent successfully");
-          });
-        };
-      }
+    // ID interno del add-in: usamos el MISMO que el ejemplo oficial
+    geotab.addin.ioxOutput = function (api, state) {
 
       return {
-        focus: initialize
-      };
+        // Geotab SIEMPRE llama initialize(api, state, callback)
+        initialize: function (api, state, callback) {
+          var deviceSelect = document.getElementById("deviceSelect");
+          var stateSelect = document.getElementById("stateSelect");
+          var sendBtn = document.getElementById("sendBtn");
 
-    })();
+          // Cargar vehículos
+          api.call("Get", { typeName: "Device" }, function (devices) {
+            devices.forEach(function (device) {
+              var opt = document.createElement("option");
+              opt.value = device.id;
+              opt.textContent = device.name;
+              deviceSelect.appendChild(opt);
+            });
+
+            // avisar a Geotab que ya terminamos de inicializar
+            callback();
+          }, function (error) {
+            console.error("Error loading devices:", error);
+            callback(error);
+          });
+
+          // Enviar comando IOX
+          sendBtn.onclick = function () {
+            var deviceId = deviceSelect.value;
+            var onState = (stateSelect.value === "On");
+
+            api.call("Set", {
+              typeName: "Output",
+              entity: {
+                device: { id: deviceId },
+                data: onState
+              }
+            }, function () {
+              alert("Command sent successfully.");
+            }, function (error) {
+              console.error("Error sending command:", error);
+              alert("Error sending command, see console.");
+            });
+          };
+        },
+
+        // Podemos dejar focus/blur vacíos por ahora
+        focus: function (api, state) {},
+        blur: function (api, state) {}
+      };
+    };
   </script>
 
 </body>
