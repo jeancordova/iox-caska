@@ -16,55 +16,67 @@
   </style>
 </head>
 <body>
+
   <div class="title">IOX Caska</div>
 
   <p>This Add-In demonstrates the capabilities of the IOX-OUTPUT.</p>
   <p>Select a vehicle and IOX state and then hit "send" to send a message to the device.</p>
 
-  <select id="vehicleSelect"></select>
-  <select id="ioxStateSelect">
+  <select id="deviceSelect"></select>
+  <select id="stateSelect">
     <option value="On">On</option>
     <option value="Off">Off</option>
   </select>
-  <button id="sendButton">Send</button>
+  <button id="sendBtn">Send</button>
 
   <script>
-    (function () {
+    // Register correctly using the internal Add-In ID
+    geotab.addin["ioxCaska"] = (function () {
 
-      // 🔥 Add-In correctamente registrado
-      geotab.addin["IOX Caska"] = function (api, state) {
+      let apiRef;
+      let stateRef;
 
-        let vehicleSelect = document.getElementById("vehicleSelect");
-        let ioxStateSelect = document.getElementById("ioxStateSelect");
-        let sendButton = document.getElementById("sendButton");
+      function initialize(api, state) {
+        apiRef = api;
+        stateRef = state;
 
-        // Load vehicles
-        api.call("Get", { typeName: "Device" }, function (result) {
-          result.forEach(function (device) {
-            let opt = document.createElement("option");
+        const deviceSelect = document.getElementById("deviceSelect");
+        const stateSelect = document.getElementById("stateSelect");
+        const sendBtn = document.getElementById("sendBtn");
+
+        // Load devices
+        api.call("Get", { typeName: "Device" }, function (devices) {
+          devices.forEach(device => {
+            const opt = document.createElement("option");
             opt.value = device.id;
             opt.textContent = device.name;
-            vehicleSelect.appendChild(opt);
+            deviceSelect.appendChild(opt);
           });
         });
 
-        // Send IOX command
-        sendButton.onclick = function () {
-          let deviceId = vehicleSelect.value;
-          let state = ioxStateSelect.value === "On";
+        // Send command
+        sendBtn.onclick = function () {
+          const deviceId = deviceSelect.value;
+          const onState = stateSelect.value === "On";
 
           api.call("Set", {
             typeName: "Output",
             entity: {
               device: { id: deviceId },
-              data: state
+              data: onState
             }
           }, function () {
-            alert("Command sent successfully.");
+            alert("Command sent successfully");
           });
         };
+      }
+
+      return {
+        focus: initialize
       };
+
     })();
   </script>
+
 </body>
 </html>
