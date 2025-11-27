@@ -6,7 +6,7 @@
   <style>
     body {
       font-family: sans-serif;
-      margin: 40px 0 0 80px; /* más espacio arriba e izquierda */
+      margin: 20px 0 0 40px; /* más espacio a la izquierda */
     }
     .title {
       font-size: 32px;
@@ -30,63 +30,61 @@
   <button id="sendBtn">Send</button>
 
   <script>
-    (function () {
+    // ID interno del add-in: usamos el MISMO que el ejemplo oficial
+    geotab.addin.ioxOutput = function (api, state) {
 
-      function createAddin(api, state) {
-        return {
-          initialize: function (api, state, callback) {
-            var deviceSelect = document.getElementById("deviceSelect");
-            var stateSelect = document.getElementById("stateSelect");
-            var sendBtn = document.getElementById("sendBtn");
+      return {
+        // Geotab SIEMPRE llama initialize(api, state, callback)
+        initialize: function (api, state, callback) {
+          var deviceSelect = document.getElementById("deviceSelect");
+          var stateSelect = document.getElementById("stateSelect");
+          var sendBtn = document.getElementById("sendBtn");
 
-            // Cargar vehículos
-            api.call("Get", { typeName: "Device" }, function (devices) {
-              devices.forEach(function (device) {
-                var opt = document.createElement("option");
-                opt.value = device.id;
-                opt.textContent = device.name;
-                deviceSelect.appendChild(opt);
-              });
-
-              // Avisar a Geotab que terminó la inicialización
-              callback();
-            }, function (error) {
-              console.error("Error loading devices:", error);
-              callback(error);
+          // Cargar vehículos
+          api.call("Get", { typeName: "Device" }, function (devices) {
+            devices.forEach(function (device) {
+              var opt = document.createElement("option");
+              opt.value = device.id;
+              opt.textContent = device.name;
+              deviceSelect.appendChild(opt);
             });
 
-            // Enviar comando IOX
-            sendBtn.onclick = function () {
-              var deviceId = deviceSelect.value;
-              var onState = (stateSelect.value === "On");
+            // avisar a Geotab que ya terminamos de inicializar
+            callback();
+          }, function (error) {
+            console.error("Error loading devices:", error);
+            callback(error);
+          });
 
-              api.call("Set", {
-                typeName: "Output",
-                entity: {
-                  device: { id: deviceId },
-                  data: onState
-                }
-              }, function () {
-                alert("Command sent successfully.");
-              }, function (error) {
-                console.error("Error sending command:", error);
-                alert("Error sending command, see console.");
-              });
-            };
-          },
+          // Enviar comando IOX
+          sendBtn.onclick = function () {
+            var deviceId = deviceSelect.value;
+            var onState = (stateSelect.value === "On");
 
-          focus: function (api, state) {},
-          blur: function (api, state) {}
-        };
-      }
+            api.call("Set", {
+              typeName: "Output",
+              entity: {
+                device: { id: deviceId },
+                data: onState
+              }
+            }, function () {
+              alert("Command sent successfully.");
+            }, function (error) {
+              console.error("Error sending command:", error);
+              alert("Error sending command, see console.");
+            });
+          };
+        },
 
-      // Registramos el mismo add-in con DOS nombres posibles
-      // para asegurarnos de coincidir con lo que usa MyGeotab.
-      geotab.addin.ioxOutput = createAddin;
-      geotab.addin["IOX Caska"] = createAddin;
-
-    })();
+        // Podemos dejar focus/blur vacíos por ahora
+        focus: function (api, state) {},
+        blur: function (api, state) {}
+      };
+    };
   </script>
+
+</body>
+</html>
 
 </body>
 </html>
