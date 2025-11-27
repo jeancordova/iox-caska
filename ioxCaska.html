@@ -1,70 +1,92 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IOX Output</title>
-
-  <!-- build:css styles/vendor.css -->
-  <!-- bower:css -->
-  <!-- endbower -->
-  <!-- endbuild -->
-
-  <!-- build:css styles/main.css -->
-  <link rel="stylesheet" href="styles/main.css">
-  <!-- endbuild -->
-
-  <!-- build:js scripts/vendor.js -->
-  <!-- bower:js -->
-  <!-- endbower -->
-  <!-- endbuild -->
-
-  <!-- build:js scripts/main.js -->
-  <script src="scripts/main.js"></script>
-  <!-- endbuild -->
-
+  <title>IOX Caska</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px 0 0 80px; /* más espacio arriba e izquierda */
+    }
+    .title {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
-
 <body>
-  
-  <div id="ioxOutput" style="display:none">
-    <div id="disclaimer">
-      <label id="disclaimerLabel">Sample add-in/tool</label>
-      <p>This tool is provided as an example and is available on an As-Is basis. You must assume all the risks and
-          costs associated with the use of the sample tool, including, without limitation, any damage to any
-          equipment, software, information or data. In addition, we are not obligated to provide any maintenance,
-          technical or other support for the sample tool. In order to improve our products, we may at any time,
-          and without warning, change the design, presentation, or functionality of the software.</p>
-    </div>
 
-    <header class="geotabPageHeader">
-      <h1 class="geotabPageName">IOX Output</h1>
-    </header>
+  <div class="title">IOX Caska</div>
 
-    <p>This Add-In demonstrates the capabilities of the IOX-OUTPUT.</p>
+  <p>This Add-In demonstrates the capabilities of the IOX-OUTPUT.</p>
+  <p>Select a vehicle and IOX state and then hit "send" to send a message to the device.</p>
 
-    <p>Select a vehicle and IOX state and then hit "send" to send a message to the device, turning the IOX on or off.</p>
+  <select id="deviceSelect"></select>
+  <select id="stateSelect">
+    <option value="On">On</option>
+    <option value="Off">Off</option>
+  </select>
+  <button id="sendBtn">Send</button>
 
-    <select id="ioxoutput-vehicles" class="ioxoutput checkmateFormEditField">
-      <option selected="true" disabled="disabled">Select a vehicle</option>
-    </select>
+  <script>
+    (function () {
 
-    <select id="ioxoutput-state" class="ioxoutput checkmateFormEditField">
-      <option>On</option>
-      <option>Off</option>
-    </select>
+      function createAddin(api, state) {
+        return {
+          initialize: function (api, state, callback) {
+            var deviceSelect = document.getElementById("deviceSelect");
+            var stateSelect = document.getElementById("stateSelect");
+            var sendBtn = document.getElementById("sendBtn");
 
-    <button id="ioxoutput-send" disabled="disabled" class="geotabButton">Send</button>
+            // Cargar vehículos
+            api.call("Get", { typeName: "Device" }, function (devices) {
+              devices.forEach(function (device) {
+                var opt = document.createElement("option");
+                opt.value = device.id;
+                opt.textContent = device.name;
+                deviceSelect.appendChild(opt);
+              });
 
-    <div id="ioxoutput-history"></div>
+              // Avisar a Geotab que terminó la inicialización
+              callback();
+            }, function (error) {
+              console.error("Error loading devices:", error);
+              callback(error);
+            });
 
-    <div id="ioxoutput-error"></div>
+            // Enviar comando IOX
+            sendBtn.onclick = function () {
+              var deviceId = deviceSelect.value;
+              var onState = (stateSelect.value === "On");
 
-  </div>
+              api.call("Set", {
+                typeName: "Output",
+                entity: {
+                  device: { id: deviceId },
+                  data: onState
+                }
+              }, function () {
+                alert("Command sent successfully.");
+              }, function (error) {
+                console.error("Error sending command:", error);
+                alert("Error sending command, see console.");
+              });
+            };
+          },
+
+          focus: function (api, state) {},
+          blur: function (api, state) {}
+        };
+      }
+
+      // Registramos el mismo add-in con DOS nombres posibles
+      // para asegurarnos de coincidir con lo que usa MyGeotab.
+      geotab.addin.ioxOutput = createAddin;
+      geotab.addin["IOX Caska"] = createAddin;
+
+    })();
+  </script>
 
 </body>
-
 </html>
