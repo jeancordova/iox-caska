@@ -1,83 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>IOX Control</title>
+    <meta charset="utf-8">
+    <title>IOX Caska</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        select, button {
+            margin-right: 10px;
+        }
+        .log {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>IOX Intervención del Acelerador</h1>
+    <h2>CASKA ADD-IN TOOL</h2>
 
-  <select id="deviceSelect"></select>
-  <select id="stateSelect">
-    <option value="true">ON</option>
-    <option value="false">OFF</option>
-  </select>
-  <button id="sendBtn">Send</button>
+    <p>
+        Esta herramienta demuestra el control del IOX Output mediante Geotab.
+    </p>
 
-  <script>
-    geotab.addin.ioxOutput = function (api, state) {
+    <h1>IOX Caska</h1>
 
-      return {
+    <p>
+        Seleccione un vehículo y el estado del IOX, luego presione "Send"
+        para activar o desactivar el relevador.
+    </p>
 
-        initialize: function (api, state, callback) {
+    <select id="deviceSelect"></select>
 
-          const deviceSelect = document.getElementById("deviceSelect");
-          const stateSelect = document.getElementById("stateSelect");
-          const sendBtn = document.getElementById("sendBtn");
+    <select id="stateSelect">
+        <option value="true">On</option>
+        <option value="false">Off</option>
+    </select>
 
-          // Cargar dispositivos
-          api.call("Get", { typeName: "Device" }, function (devices) {
+    <button id="sendBtn">Send</button>
 
-            devices.forEach(function (device) {
-              const opt = document.createElement("option");
-              opt.value = device.id;
-              opt.textContent = device.name;
-              deviceSelect.appendChild(opt);
-            });
+    <div class="log" id="log"></div>
 
-            callback();
+    <script>
+        geotab.addin.ioxOutput = function (api, state) {
 
-          }, function (error) {
-            console.error(error);
-            callback(error);
-          });
+            return {
 
-          // 🔥 CONTROL REAL DEL IOX
-          sendBtn.onclick = function () {
+                initialize: function (api, state, callback) {
 
-            const deviceId = deviceSelect.value;
-            const stateValue = stateSelect.value === "true";
+                    const deviceSelect = document.getElementById("deviceSelect");
+                    const stateSelect = document.getElementById("stateSelect");
+                    const sendBtn = document.getElementById("sendBtn");
+                    const log = document.getElementById("log");
 
-            api.call("Add", {
-              typeName: "GoDeviceCommand",
-              entity: {
-                device: { id: deviceId },
-                commandType: "OutputControl",
-                data: {
-                  outputs: [
-                    {
-                      id: 1,
-                      value: stateValue
-                    }
-                  ]
-                }
-              }
-            }, function () {
-              alert("Relevador activado/desactivado");
-            }, function (error) {
-              console.error(error);
-              alert("Error al controlar IOX");
-            });
-          };
-        },
+                    // Cargar dispositivos
+                    api.call("Get", { typeName: "Device" }, function (devices) {
 
-        focus: function () {},
-        blur: function () {}
+                        devices.forEach(function (device) {
+                            const opt = document.createElement("option");
+                            opt.value = device.id;
+                            opt.textContent = device.name;
+                            deviceSelect.appendChild(opt);
+                        });
 
-      };
-    };
-  </script>
+                        callback();
+
+                    }, function (error) {
+                        console.error(error);
+                        callback(error);
+                    });
+
+                    // Enviar comando (igual que sample)
+                    sendBtn.onclick = function () {
+
+                        const deviceId = deviceSelect.value;
+                        const stateValue = stateSelect.value === "true";
+
+                        api.call("Add", {
+                            typeName: "TextMessage",
+                            entity: {
+                                device: { id: deviceId },
+                                messageContent: {
+                                    contentType: "DriverDisplay",
+                                    text: stateValue ? "IOX ON" : "IOX OFF"
+                                }
+                            }
+                        }, function () {
+
+                            const now = new Date();
+                            const entry = document.createElement("div");
+                            entry.textContent = "Sent: " + now.toString();
+                            log.appendChild(entry);
+
+                        }, function (error) {
+                            console.error(error);
+                            alert("Error al enviar");
+                        });
+                    };
+                },
+
+                focus: function () {},
+                blur: function () {}
+
+            };
+        };
+    </script>
 
 </body>
 </html>
