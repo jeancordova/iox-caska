@@ -14,9 +14,6 @@
             margin-bottom: 15px;
             font-size: 12px;
         }
-        h1 {
-            margin-bottom: 10px;
-        }
         select, button {
             margin-right: 10px;
         }
@@ -27,20 +24,15 @@
 </head>
 <body>
 
-    <!-- SOLO CAMBIO DE TEXTO -->
     <div class="header">
         <strong>CASKA ADD-IN TOOL</strong><br>
-        Esta herramienta se proporciona como ejemplo y se entrega "tal cual".
-        El uso es bajo su propio riesgo. Caska no se hace responsable por daños derivados del uso.
+        Esta herramienta demuestra el control del IOX Output mediante Geotab.
     </div>
 
-    <!-- SOLO CAMBIO DE TEXTO -->
     <h1>IOX Caska</h1>
 
-    <!-- SOLO CAMBIO DE TEXTO -->
     <p>
-        Este Add-In demuestra las capacidades del IOX-OUTPUT.
-        Seleccione un vehículo y un estado del IOX, luego presione "Send"
+        Seleccione un vehículo y el estado del IOX, luego presione "Send"
         para enviar el comando al dispositivo.
     </p>
 
@@ -67,7 +59,7 @@
                     var sendBtn = document.getElementById("sendBtn");
                     var log = document.getElementById("log");
 
-                    // Obtener dispositivos (igual que el sample)
+                    // Obtener dispositivos
                     api.call("Get", { typeName: "Device" }, function (devices) {
 
                         devices.forEach(function (device) {
@@ -84,7 +76,7 @@
                         callback(error);
                     });
 
-                    // ENVÍO EXACTO DEL SAMPLE (NO MODIFICADO)
+                    // 👇 ESTE ES EL CAMBIO REAL IMPORTANTE
                     sendBtn.onclick = function () {
 
                         var deviceId = deviceSelect.value;
@@ -94,6 +86,8 @@
                             typeName: "TextMessage",
                             entity: {
                                 device: { id: deviceId },
+                                driver: { id: "UnknownDriverId" },
+                                isDirectionToVehicle: true,
                                 messageContent: {
                                     contentType: "DriverDisplay",
                                     text: stateValue
@@ -108,7 +102,7 @@
 
                         }, function (error) {
                             console.error(error);
-                            alert("Error al controlar IOX");
+                            alert("Error al enviar");
                         });
                     };
                 },
