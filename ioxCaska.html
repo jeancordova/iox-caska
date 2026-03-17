@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>IOX Caska</title>
+  <title>IOX Control</title>
 </head>
 <body>
 
@@ -10,8 +10,8 @@
 
   <select id="deviceSelect"></select>
   <select id="stateSelect">
-    <option value="On">On</option>
-    <option value="Off">Off</option>
+    <option value="true">ON</option>
+    <option value="false">OFF</option>
   </select>
   <button id="sendBtn">Send</button>
 
@@ -26,7 +26,7 @@
           const stateSelect = document.getElementById("stateSelect");
           const sendBtn = document.getElementById("sendBtn");
 
-          // Cargar vehículos
+          // Cargar dispositivos
           api.call("Get", { typeName: "Device" }, function (devices) {
 
             devices.forEach(function (device) {
@@ -43,26 +43,31 @@
             callback(error);
           });
 
-          // Enviar comando
+          // 🔥 CONTROL REAL DEL IOX
           sendBtn.onclick = function () {
 
             const deviceId = deviceSelect.value;
-            const onState = (stateSelect.value === "On");
+            const stateValue = stateSelect.value === "true";
 
             api.call("Add", {
-              typeName: "TextMessage",
+              typeName: "GoDeviceCommand",
               entity: {
                 device: { id: deviceId },
-                messageContent: {
-                  contentType: "DriverDisplay",
-                  text: onState ? "ON" : "OFF"
+                commandType: "OutputControl",
+                data: {
+                  outputs: [
+                    {
+                      id: 1,
+                      value: stateValue
+                    }
+                  ]
                 }
               }
             }, function () {
-              alert("Comando enviado correctamente");
+              alert("Relevador activado/desactivado");
             }, function (error) {
-              console.error("Error:", error);
-              alert("Error al enviar");
+              console.error(error);
+              alert("Error al controlar IOX");
             });
           };
         },
