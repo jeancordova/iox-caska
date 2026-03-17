@@ -2,25 +2,11 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>IOXffff Caska</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-    }
-    .title {
-      font-size: 32px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-  </style>
+  <title>IOX Caska</title>
 </head>
 <body>
 
-  <div class="title">IOXhhhh Caska</div>
-
-  <p>This Add-In demonstrates the 4444444444444capabilities of the IOX-OUTPUT.</p>
-  <p>Select a vehicle and IOX state and then hit "send" to send a message to the device.</p>
+  <h1>IOX Intervención del Acelerador</h1>
 
   <select id="deviceSelect"></select>
   <select id="stateSelect">
@@ -30,52 +16,58 @@
   <button id="sendBtn">Send</button>
 
   <script>
-    // Register correctly using the internal Add-In ID
-    geotab.addin["ioxCaska"] = (function () {
-
-      let apiRef;
-      let stateRef;
-
-      function initialize(api, state) {
-        apiRef = api;
-        stateRef = state;
-
-        const deviceSelect = document.getElementById("deviceSelect");
-        const stateSelect = document.getElementById("stateSelect");
-        const sendBtn = document.getElementById("sendBtn");
-
-        // Load devices
-        api.call("Get", { typeName: "Device" }, function (devices) {
-          devices.forEach(device => {
-            const opt = document.createElement("option");
-            opt.value = device.id;
-            opt.textContent = device.name;
-            deviceSelect.appendChild(opt);
-          });
-        });
-
-        // Send command
-        sendBtn.onclick = function () {
-          const deviceId = deviceSelect.value;
-          const onState = stateSelect.value === "On";
-
-          api.call("Set", {
-            typeName: "Output",
-            entity: {
-              device: { id: deviceId },
-              data: onState
-            }
-          }, function () {
-            alert("Command sent successfully");
-          });
-        };
-      }
+    geotab.addin.ioxOutput = function (api, state) {
 
       return {
-        focus: initialize
-      };
 
-    })();
+        initialize: function (api, state, callback) {
+
+          const deviceSelect = document.getElementById("deviceSelect");
+          const stateSelect = document.getElementById("stateSelect");
+          const sendBtn = document.getElementById("sendBtn");
+
+          // 🔹 Cargar vehículos
+          api.call("Get", { typeName: "Device" }, function (devices) {
+
+            devices.forEach(function (device) {
+              const opt = document.createElement("option");
+              opt.value = device.id;
+              opt.textContent = device.name;
+              deviceSelect.appendChild(opt);
+            });
+
+            callback(); // 🔥 CRÍTICO
+
+          }, function (error) {
+            console.error(error);
+            callback(error);
+          });
+
+          // 🔹 Enviar comando
+          sendBtn.onclick = function () {
+
+            const deviceId = deviceSelect.value;
+            const onState = (stateSelect.value === "On");
+
+            api.call("Set", {
+              typeName: "Output",
+              entity: {
+                device: { id: deviceId },
+                data: onState
+              }
+            }, function () {
+              alert("Enviado correctamente");
+            }, function (error) {
+              console.error(error);
+            });
+          };
+        },
+
+        focus: function () {},
+        blur: function () {}
+
+      };
+    };
   </script>
 
 </body>
