@@ -8,6 +8,12 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+        .header {
+            background: #e6f2ff;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
         h1 {
             margin-bottom: 10px;
         }
@@ -21,24 +27,28 @@
 </head>
 <body>
 
-    <h2>CASKA ADD-IN TOOL</h2>
+    <!-- SOLO CAMBIO DE TEXTO -->
+    <div class="header">
+        <strong>CASKA ADD-IN TOOL</strong><br>
+        Esta herramienta se proporciona como ejemplo y se entrega "tal cual".
+        El uso es bajo su propio riesgo. Caska no se hace responsable por daños derivados del uso.
+    </div>
 
-    <p>
-        Esta herramienta demuestra el control del IOX Output mediante Geotab.
-    </p>
-
+    <!-- SOLO CAMBIO DE TEXTO -->
     <h1>IOX Caska</h1>
 
+    <!-- SOLO CAMBIO DE TEXTO -->
     <p>
-        Seleccione un vehículo y el estado del IOX, luego presione "Send"
-        para activar o desactivar el relevador.
+        Este Add-In demuestra las capacidades del IOX-OUTPUT.
+        Seleccione un vehículo y un estado del IOX, luego presione "Send"
+        para enviar el comando al dispositivo.
     </p>
 
     <select id="deviceSelect"></select>
 
     <select id="stateSelect">
-        <option value="true">On</option>
-        <option value="false">Off</option>
+        <option value="On">On</option>
+        <option value="Off">Off</option>
     </select>
 
     <button id="sendBtn">Send</button>
@@ -52,19 +62,19 @@
 
                 initialize: function (api, state, callback) {
 
-                    const deviceSelect = document.getElementById("deviceSelect");
-                    const stateSelect = document.getElementById("stateSelect");
-                    const sendBtn = document.getElementById("sendBtn");
-                    const log = document.getElementById("log");
+                    var deviceSelect = document.getElementById("deviceSelect");
+                    var stateSelect = document.getElementById("stateSelect");
+                    var sendBtn = document.getElementById("sendBtn");
+                    var log = document.getElementById("log");
 
-                    // Cargar dispositivos
+                    // Obtener dispositivos (igual que el sample)
                     api.call("Get", { typeName: "Device" }, function (devices) {
 
                         devices.forEach(function (device) {
-                            const opt = document.createElement("option");
-                            opt.value = device.id;
-                            opt.textContent = device.name;
-                            deviceSelect.appendChild(opt);
+                            var option = document.createElement("option");
+                            option.value = device.id;
+                            option.textContent = device.name;
+                            deviceSelect.appendChild(option);
                         });
 
                         callback();
@@ -74,11 +84,11 @@
                         callback(error);
                     });
 
-                    // Enviar comando (igual que sample)
+                    // ENVÍO EXACTO DEL SAMPLE (NO MODIFICADO)
                     sendBtn.onclick = function () {
 
-                        const deviceId = deviceSelect.value;
-                        const stateValue = stateSelect.value === "true";
+                        var deviceId = deviceSelect.value;
+                        var stateValue = stateSelect.value;
 
                         api.call("Add", {
                             typeName: "TextMessage",
@@ -86,19 +96,19 @@
                                 device: { id: deviceId },
                                 messageContent: {
                                     contentType: "DriverDisplay",
-                                    text: stateValue ? "IOX ON" : "IOX OFF"
+                                    text: stateValue
                                 }
                             }
                         }, function () {
 
-                            const now = new Date();
-                            const entry = document.createElement("div");
+                            var now = new Date();
+                            var entry = document.createElement("div");
                             entry.textContent = "Sent: " + now.toString();
                             log.appendChild(entry);
 
                         }, function (error) {
                             console.error(error);
-                            alert("Error al enviar");
+                            alert("Error al controlar IOX");
                         });
                     };
                 },
