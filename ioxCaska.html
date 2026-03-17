@@ -26,7 +26,7 @@
           const stateSelect = document.getElementById("stateSelect");
           const sendBtn = document.getElementById("sendBtn");
 
-          // 🔹 Cargar vehículos
+          // Cargar vehículos
           api.call("Get", { typeName: "Device" }, function (devices) {
 
             devices.forEach(function (device) {
@@ -36,29 +36,33 @@
               deviceSelect.appendChild(opt);
             });
 
-            callback(); // 🔥 CRÍTICO
+            callback();
 
           }, function (error) {
             console.error(error);
             callback(error);
           });
 
-          // 🔹 Enviar comando
+          // Enviar comando
           sendBtn.onclick = function () {
 
             const deviceId = deviceSelect.value;
             const onState = (stateSelect.value === "On");
 
-            api.call("Set", {
-              typeName: "Output",
+            api.call("Add", {
+              typeName: "TextMessage",
               entity: {
                 device: { id: deviceId },
-                data: onState
+                messageContent: {
+                  contentType: "DriverDisplay",
+                  text: onState ? "ON" : "OFF"
+                }
               }
             }, function () {
-              alert("Enviado correctamente");
+              alert("Comando enviado correctamente");
             }, function (error) {
-              console.error(error);
+              console.error("Error:", error);
+              alert("Error al enviar");
             });
           };
         },
