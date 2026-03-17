@@ -8,11 +8,8 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        .header {
-            background: #e6f2ff;
-            padding: 10px;
-            margin-bottom: 15px;
-            font-size: 12px;
+        h1 {
+            margin-bottom: 10px;
         }
         select, button {
             margin-right: 10px;
@@ -24,95 +21,83 @@
 </head>
 <body>
 
-    <div class="header">
-        <strong>CASKA ADD-IN TOOL</strong><br>
-        Esta herramienta demuestra el control del IOX Output mediante Geotab.
-    </div>
+<h1>IOX Caska - Control Real</h1>
 
-    <h1>IOX Caska</h1>
+<p>Seleccione un vehículo y el estado del relevador</p>
 
-    <p>
-        Seleccione un vehículo y el estado del IOX, luego presione "Send"
-        para enviar el comando al dispositivo.
-    </p>
+<select id="deviceSelect"></select>
 
-    <select id="deviceSelect"></select>
+<select id="stateSelect">
+    <option value="ON">ON</option>
+    <option value="OFF">OFF</option>
+</select>
 
-    <select id="stateSelect">
-        <option value="On">On</option>
-        <option value="Off">Off</option>
-    </select>
+<button id="sendBtn">Send</button>
 
-    <button id="sendBtn">Send</button>
+<div class="log" id="log"></div>
 
-    <div class="log" id="log"></div>
+<script>
+geotab.addin.ioxCaska = function (api, state) {
 
-    <script>
-        geotab.addin.ioxOutput = function (api, state) {
+    return {
 
-            return {
+        initialize: function (api, state, callback) {
 
-                initialize: function (api, state, callback) {
+            var deviceSelect = document.getElementById("deviceSelect");
+            var stateSelect = document.getElementById("stateSelect");
+            var sendBtn = document.getElementById("sendBtn");
+            var log = document.getElementById("log");
 
-                    var deviceSelect = document.getElementById("deviceSelect");
-                    var stateSelect = document.getElementById("stateSelect");
-                    var sendBtn = document.getElementById("sendBtn");
-                    var log = document.getElementById("log");
+            // Cargar dispositivos
+            api.call("Get", { typeName: "Device" }, function (devices) {
 
-                    // Obtener dispositivos
-                    api.call("Get", { typeName: "Device" }, function (devices) {
+                devices.forEach(function (device) {
+                    var option = document.createElement("option");
+                    option.value = device.id;
+                    option.textContent = device.name;
+                    deviceSelect.appendChild(option);
+                });
 
-                        devices.forEach(function (device) {
-                            var option = document.createElement("option");
-                            option.value = device.id;
-                            option.textContent = device.name;
-                            deviceSelect.appendChild(option);
-                        });
+                callback();
 
-                        callback();
+            }, function (error) {
+                console.error(error);
+                callback(error);
+            });
 
-                    }, function (error) {
-                        console.error(error);
-                        callback(error);
-                    });
+            // Enviar señal REAL
+            sendBtn.onclick = function () {
 
-                    // 👇 ESTE ES EL CAMBIO REAL IMPORTANTE
-                    sendBtn.onclick = function () {
+                var deviceId = deviceSelect.value;
+                var value = stateSelect.value;
 
-                        var deviceId = deviceSelect.value;
-                        var stateValue = stateSelect.value;
+                api.call("Add", {
+                    typeName: "CustomData",
+                    entity: {
+                        device: { id: deviceId },
+                        name: "IOX_CASKA",
+                        value: value
+                    }
+                }, function () {
 
-                        api.call("Add", {
-                            typeName: "TextMessage",
-                            entity: {
-                                device: { id: deviceId },
-                                driver: { id: "UnknownDriverId" },
-                                isDirectionToVehicle: true,
-                                messageContent: {
-                                    contentType: "DriverDisplay",
-                                    text: stateValue
-                                }
-                            }
-                        }, function () {
+                    var now = new Date();
+                    var entry = document.createElement("div");
+                    entry.textContent = "Comando enviado: " + value + " - " + now.toString();
+                    log.appendChild(entry);
 
-                            var now = new Date();
-                            var entry = document.createElement("div");
-                            entry.textContent = "Sent: " + now.toString();
-                            log.appendChild(entry);
-
-                        }, function (error) {
-                            console.error(error);
-                            alert("Error al enviar");
-                        });
-                    };
-                },
-
-                focus: function () {},
-                blur: function () {}
-
+                }, function (error) {
+                    console.error(error);
+                    alert("Error al enviar");
+                });
             };
-        };
-    </script>
+        },
+
+        focus: function () {},
+        blur: function () {}
+
+    };
+};
+</script>
 
 </body>
 </html>
